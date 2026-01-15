@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="navbar">
+    <style>
+        .navbar {
+            background-color: #ffffff;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e3e8ee;
+            position: relative;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #6772e5;
+            text-decoration: none;
+            margin-right: 30px;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #697386;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: #6772e5; }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-nav {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .btn-logout { background-color: #fff1f0; color: #e05252; }
+        .btn-login { background-color: #f7f9fc; color: #1a1f36; }
+        .btn-register { background-color: #6772e5; color: white; }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+            border: none;
+            background: none;
+            padding: 5px;
+        }
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: #1a1f36;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+
+            .brand {
+                flex-grow: 1;
+                margin-right: 0;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-content {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 15px;
+                border-top: 1px solid #eee;
+                padding-top: 15px;
+                gap: 15px;
+            }
+
+            .nav-content.active {
+                display: flex;
+            }
+
+            .nav-links, .nav-user {
+                flex-direction: column;
+                width: 100%;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .nav-link, .btn-nav {
+                width: 100%;
+                text-align: center;
+                padding: 10px;
+                display: block;
+            }
+        }
+    </style>
+
+    <nav class="navbar">
+        <a th:href="@{/zones}" class="brand">iPark</a>
+
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="nav-content" id="navbarMenu">
+
+            <div class="nav-links">
+                <a th:href="@{/zones}" class="nav-link">🏠 Zone Parcare</a>
+                <th:block th:if="${session.currentUser != null}">
+                    <a th:href="@{/account}" class="nav-link">👤 Contul Meu</a>
+                </th:block>
+            </div>
+
+            <div class="nav-user">
+                <th:block th:if="${session.currentUser != null}">
+                    <span style="color: #1a1f36;">Salut, <b th:text="${session.currentUser.username}"></b>!</span>
+                    <a th:href="@{/logout}" class="btn-nav btn-logout">Deconectare</a>
+                </th:block>
+
+                <th:block th:unless="${session.currentUser != null}">
+                    <a th:href="@{/login}" class="btn-nav btn-login">Login</a>
+                    <a th:href="@{/register}" class="btn-nav btn-register">Înregistrare</a>
+                </th:block>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        function toggleMenu() {
+            var menu = document.getElementById("navbarMenu");
+            if (menu.classList.contains("active")) {
+                menu.classList.remove("active");
+            } else {
+                menu.classList.add("active");
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

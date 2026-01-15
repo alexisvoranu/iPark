@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Rezervare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6772e5;
+            --primary-hover: #5469d4;
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-dark: #1a1f36;
+            --text-light: #697386;
+            --border-color: #e3e8ee;
+            --highlight-bg: #f8f9fa;
+            --info-bg: #e0f2fe;
+            --info-text: #0369a1;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .reserve-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        h2 span {
+            color: var(--primary-color);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            background-color: white;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(103, 114, 229, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .radio-option:hover {
+            background-color: var(--highlight-bg);
+            border-color: #cbd2d9;
+        }
+
+        .radio-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 12px;
+            accent-color: var(--primary-color);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .option-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            flex-grow: 1;
+        }
+
+        .option-price {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .option-badge {
+            font-size: 11px;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            text-transform: uppercase;
+        }
+
+        .hours-input-container {
+            margin-top: 10px;
+            margin-left: 30px;
+            display: none;
+        }
+
+        .hours-input-container input {
+            width: 100px;
+            margin-bottom: 0;
+            display: inline-block;
+        }
+
+        .hours-input-container span {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-left: 5px;
+        }
+
+        .expiration-info {
+            background-color: var(--info-bg);
+            color: var(--info-text);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #bae6fd;
+        }
+
+        .expiration-icon {
+            font-size: 16px;
+        }
+
+        button[type="submit"] {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .cancel-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .cancel-link:hover {
+            color: var(--text-dark);
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid var(--border-color);
+            margin: 10px 0 20px 0;
+        }
+
+        @media (max-width: 480px) {
+            .container { margin: 20px auto; padding: 0 15px; }
+            .reserve-card { padding: 24px; }
+        }
+    </style>
+
+    <script>
+        function updateUI() {
+            var hourlyRadio = document.getElementById('optHourly');
+            var hourlyContainer = document.getElementById('hourlyContainer');
+            var hoursInput = document.getElementById('hoursInput');
+            var infoBox = document.getElementById('expirationText');
+
+            if (hourlyRadio.checked) {
+                hourlyContainer.style.display = 'block';
+                hoursInput.disabled = false;
+            } else {
+                hourlyContainer.style.display = 'none';
+                hoursInput.disabled = true;
+            }
+
+            var now = new Date();
+            var addedHours = 0;
+
+            if (hourlyRadio.checked) {
+                var val = parseInt(hoursInput.value);
+                addedHours = isNaN(val) ? 1 : val;
+            } else {
+                addedHours = 24;
+            }
+
+            now.setHours(now.getHours() + addedHours);
+
+            var options = { weekday: 'long', hour: '2-digit', minute: '2-digit' };
+            var formattedTime = now.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+
+            var day = now.getDate();
+            var month = now.getMonth() + 1;
+            var formattedDate = day + '/' + month;
+
+            infoBox.innerHTML = "Valabilă până la: <b>" + formattedTime + "</b> (" + formattedDate + ")";
+        }
+
+        window.onload = updateUI;
+    </script>
+</head>
+<body>
+
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<div class="container">
+    <div class="reserve-card">
+        <h2>Rezervare Loc: <span th:text="${zone.name}"></span></h2>
+
+        <form action="/iPark/payment/checkout" method="post">
+            <input type="hidden" name="zoneId" th:value="${zone.id}"/>
+
+            <div>
+                <label>Introdu numărul de înmatriculare</label>
+                <input type="text" name="licensePlate" list="savedPlatesList"
+                       placeholder="Ex: B 123 ABC"
+                       required
+                       autocomplete="off"
+                       oninput="this.value = this.value.toUpperCase()"/>
+
+                <datalist id="savedPlatesList">
+                    <option th:each="plate : ${savedPlates}" th:value="${plate}"></option>
+                </datalist>
+                <small style="color: #697386; margin-top: -15px; display: block; margin-bottom: 20px;">
+                    Poți scrie un număr nou sau alege unul din listă.
+                </small>
+            </div>
+
+            <hr/>
+
+            <label>Alege durata și prețul</label>
+            <div class="radio-group">
+
+                <div class="radio-option" onclick="document.getElementById('optHourly').click(); updateUI();">
+                    <div class="radio-header">
+                        <input type="radio" id="optHourly" name="durationType" value="hourly" checked
+                               onchange="updateUI()">
+                        <span class="option-text">Tarif Orar</span>
+                        <span class="option-price"><b th:text="${zone.pricePerHour}"></b> RON / oră</span>
+                    </div>
+
+                    <div id="hourlyContainer" class="hours-input-container">
+                        <label style="margin-bottom: 5px; font-size: 13px;">Câte ore staționați?</label>
+                        <input type="number" name="hours" id="hoursInput" value="1" min="1" max="24"
+                               onclick="event.stopPropagation();" oninput="updateUI()">
+                        <span>ore</span>
+                    </div>
+                </div>
+
+                <div class="radio-option" onclick="document.getElementById('optDaily').click(); updateUI();">
+                    <div class="radio-header">
+                        <input type="radio" id="optDaily" name="durationType" value="daily" onchange="updateUI()">
+                        <span class="option-text">
+                            Tarif Zilnic (24h) <span class="option-badge">Avantajos</span>
+                        </span>
+                        <span class="option-price"><b th:text="${zone.pricePerDay}"></b> RON / zi</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="expiration-info">
+                <span class="expiration-icon">🕒</span>
+                <span id="expirationText">Se calculează...</span>
+            </div>
+
+            <button type="submit">Plătește cu Cardul</button>
+        </form>
+
+        <a href="/iPark/zones" class="cancel-link">Anulează și înapoi</a>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+/mvnw text eol=lf
+*.cmd text eol=crlf
+
+account.html linguist-vendored
+login.html linguist-vendored
+register.html linguist-vendored

@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: iPark
+  datasource:
+    url: jdbc:h2:mem:parkingdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  servlet:
+    context-path: /iPark
+stripe:
+  api:
+    key: ${STRIPE_API_KEY}
+    public-key: ${STRIPE_API_PUBLIC_KEY}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET}

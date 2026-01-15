@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Zone Parcare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6772e5;
+            --primary-hover: #5469d4;
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-dark: #1a1f36;
+            --text-light: #697386;
+            --border-color: #e3e8ee;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --error-bg: #f8d7da;
+            --error-text: #721c24;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text-dark);
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f9fafb;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 15px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #fcfcfd;
+        }
+
+        .zone-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .badge-success { background-color: var(--success-bg); color: var(--success-text); }
+        .badge-danger { background-color: var(--error-bg); color: var(--error-text); }
+
+        .btn-reserve {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: inline-block;
+        }
+
+        .btn-reserve:hover { background-color: var(--primary-hover); }
+
+        .btn-login-small {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 6px 12px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .btn-login-small:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .status-text { font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .container { margin: 20px auto; padding: 0 15px; }
+            h2 { font-size: 20px; margin-bottom: 20px; }
+            th, td { padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/nav :: navbar}"></div>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="margin: 0;">Zone Disponibile</h2>
+
+        <span th:if="${user == null}" style="font-size: 14px; color: #697386; display: none;" class="desktop-hint">
+            Autentifică-te pentru a rezerva.
+        </span>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <a href="/iPark/zones" style="margin-right: 10px;">Toate Zonele</a>
+        <a href="/iPark/zones?onlyAvailable=true" style="color: green; font-weight: bold;">Doar cele libere</a>
+    </div>
+
+    <div class="table-card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Zona</th>
+                    <th>Preț/Oră</th>
+                    <th>Capacitate</th>
+                    <th>Disponibil</th>
+                    <th>Acțiune</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="zone : ${zones}">
+                    <td class="zone-name" th:text="${zone.name}">A</td>
+                    <td th:text="${zone.pricePerHour} + ' RON'">10</td>
+                    <td th:text="${zone.totalCapacity}">15</td>
+                    <td>
+                        <span th:text="${zone.getAvailableSpaces()}"
+                              th:class="${zone.getAvailableSpaces() == 0} ? 'badge badge-danger' : 'badge badge-success'">
+                        </span>
+                    </td>
+                    <td>
+                        <th:block th:if="${user != null}">
+                            <span th:if="${zone.getAvailableSpaces() > 0}">
+                                <a th:href="@{'/reserve/' + ${zone.id}}" class="btn-reserve">Rezervă acum</a>
+                            </span>
+                            <span th:unless="${zone.getAvailableSpaces() > 0}" class="status-text"
+                                  style="color: var(--error-text);">
+                                EPUIZAT
+                            </span>
+                        </th:block>
+
+                        <th:block th:unless="${user != null}">
+                             <span th:if="${zone.getAvailableSpaces() > 0}">
+                                <a href="/iPark/login" class="btn-login-small">Login necesar</a>
+                            </span>
+                            <span th:unless="${zone.getAvailableSpaces() > 0}" class="status-text"
+                                  style="color: var(--error-text);">
+                                EPUIZAT
+                            </span>
+                        </th:block>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media(min-width: 768px) {
+        .desktop-hint { display: block !important; }
+    }
+</style>
+
+</body>
+</html>
