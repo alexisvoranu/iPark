@@ -1,0 +1,26 @@
+---
+- name: Deploy Spring Boot Application to AWS EC2
+  hosts: aws_servers
+  become: true
+
+  tasks:
+    - name: Ensure the application network exists in Docker
+      community.docker.docker_network:
+        name: ipark-network
+        state: present
+
+    - name: Deploy Spring Boot Application Container
+      community.docker.docker_container:
+        name: ipark-app
+        image: alexisvo/ipark-app:latest
+        state: started
+        restart_policy: always
+        network_mode: ipark-network
+        ports:
+          - "8080:8080"
+        env:
+          PORT: "8080"
+          URL: "18.196.102.251:8080"
+          STRIPE_API_KEY: "{{ lookup('env', 'STRIPE_API_KEY') }}"
+          STRIPE_API_PUBLIC_KEY: "{{ lookup('env', 'STRIPE_API_PUBLIC_KEY') }}"
+          STRIPE_WEBHOOK_SECRET: "{{ lookup('env', 'STRIPE_WEBHOOK_SECRET') }}"
