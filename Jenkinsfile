@@ -69,7 +69,9 @@ pipeline {
                             string(credentialsId: 'stripe-webhook-secret', variable: 'STRIPE_WEBHOOK_SECRET')
                         ]) {
                             sshagent(['aws-ec2-ssh-key']) {
-                                sh "ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -u ubuntu"
+                                // We force Ansible to use native OpenSSH binary instead of Paramiko
+                                // And we add a strict host key checking bypass so it doesn't prompt for approval
+                                sh "ANSIBLE_TRANSPORT=ssh ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -u ubuntu --ssh-common-args='-o StrictHostKeyChecking=no'"
                             }
                         }
                     }
