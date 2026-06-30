@@ -52,8 +52,8 @@ pipeline {
             steps {
                 echo 'Authenticating and pushing image to Docker Hub...'
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials',
-                                                 usernameVariable: 'DOCKER_USER',
-                                                 passwordVariable: 'DOCKER_PASS')]) {
+                            usernameVariable: 'DOCKER_USER',
+                            passwordVariable: 'DOCKER_PASS')]) {
                     sh "echo '${DOCKER_PASS}' | docker login -u '${DOCKER_USER}' --password-stdin"
                     sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
                 }
@@ -64,10 +64,10 @@ pipeline {
             steps {
                 echo 'Executing Ansible Playbook...'
                 withCredentials([
-                    string(credentialsId: 'stripe-secret-key', variable: 'STRIPE_API_KEY'),
-                    string(credentialsId: 'stripe-public-key', variable: 'STRIPE_API_PUBLIC_KEY'),
-                    string(credentialsId: 'stripe-webhook-secret', variable: 'STRIPE_WEBHOOK_SECRET')
-                ]) {
+                        string(credentialsId: 'stripe-secret-key', variable: 'STRIPE_API_KEY'),
+                        string(credentialsId: 'stripe-public-key', variable: 'STRIPE_API_PUBLIC_KEY'),
+                        string(credentialsId: 'stripe-webhook-secret', variable: 'STRIPE_WEBHOOK_SECRET')
+                    ]) {
                     sshagent(['aws-ec2-ssh-key']) {
                         sh "ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -u ec2-user --ssh-common-args='-o StrictHostKeyChecking=no'"
                     }
