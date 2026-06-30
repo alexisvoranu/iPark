@@ -15,11 +15,14 @@ pipeline {
         }
 
         stage('Build Spring Boot App') {
-            steps {
-                echo 'Building Java application using Maven...'
-                sh './mvnw clean package -DskipTests'
-            }
-        }
+                    steps {
+                        echo 'Giving execution permissions to Maven wrapper...'
+                        sh 'chmod +x mvnw'
+
+                        echo 'Building Java application using Maven...'
+                        sh './mvnw clean package -DskipTests'
+                    }
+                }
 
         stage('Build Docker Image') {
             steps {
