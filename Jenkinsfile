@@ -63,14 +63,13 @@ pipeline {
         stage('Deploy via Ansible') {
                     steps {
                         echo 'Executing Ansible Playbook...'
-
                         withCredentials([
                             string(credentialsId: 'stripe-secret-key', variable: 'STRIPE_API_KEY'),
                             string(credentialsId: 'stripe-public-key', variable: 'STRIPE_API_PUBLIC_KEY'),
                             string(credentialsId: 'stripe-webhook-secret', variable: 'STRIPE_WEBHOOK_SECRET')
                         ]) {
                             sshagent(['aws-ec2-ssh-key']) {
-                                sh "ansible-playbook -i ansible/inventory.ini ansible/deploy.yml --private-key=\$SSH_KEY_PATH -u ubuntu"
+                                sh "ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -u ubuntu"
                             }
                         }
                     }
