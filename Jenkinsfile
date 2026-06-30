@@ -9,20 +9,20 @@ pipeline {
 
     stages {
         stage('Setup Environment') {
-            steps {
-                echo 'Installing Docker CLI and Ansible at the start...'
-                sh '''
-                    apt-get update && \
-                    apt-get install -y ca-certificates curl gnupg ansible && \
-                    install -m 0755 -d /etc/apt/keyrings && \
-                    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes && \
-                    chmod a+r /etc/apt/keyrings/docker.gpg && \
-                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-                    apt-get update && \
-                    apt-get install -y docker-ce-cli
-                '''
-            }
-        }
+                    steps {
+                        echo 'Installing Docker CLI, Ansible and Paramiko SSH module...'
+                        sh '''
+                            apt-get update && \
+                            apt-get install -y ca-certificates curl gnupg ansible python3-paramiko && \
+                            install -m 0755 -d /etc/apt/keyrings && \
+                            curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes && \
+                            chmod a+r /etc/apt/keyrings/docker.gpg && \
+                            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+                            apt-get update && \
+                            apt-get install -y docker-ce-cli
+                        '''
+                    }
+                }
 
         stage('Checkout Source Code') {
             steps {
