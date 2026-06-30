@@ -8,6 +8,22 @@ pipeline {
     }
 
     stages {
+        stage('Setup Environment') {
+            steps {
+                echo 'Installing Docker CLI and Ansible at the start...'
+                sh '''
+                    apt-get update && \
+                    apt-get install -y ca-certificates curl gnupg ansible && \
+                    install -m 0755 -d /etc/apt/keyrings && \
+                    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes && \
+                    chmod a+r /etc/apt/keyrings/docker.gpg && \
+                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+                    apt-get update && \
+                    apt-get install -y docker-ce-cli
+                '''
+            }
+        }
+
         stage('Checkout Source Code') {
             steps {
                 checkout scm
@@ -15,14 +31,14 @@ pipeline {
         }
 
         stage('Build Spring Boot App') {
-                    steps {
-                        echo 'Giving execution permissions to Maven wrapper...'
-                        sh 'chmod +x mvnw'
+            steps {
+                echo 'Giving execution permissions to Maven wrapper...'
+                sh 'chmod +x mvnw'
 
-                        echo 'Building Java application using Maven...'
-                        sh './mvnw clean package -DskipTests'
-                    }
-                }
+                echo 'Building Java application using Maven...'
+                sh './mvnw clean package -DskipTests'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -46,18 +62,6 @@ pipeline {
 
         stage('Deploy via Ansible') {
             steps {
-                echo 'Installing Docker CLI and Ansible inside Jenkins container...'
-                sh '''
-                    apt-get update && \
-                    apt-get install -y ca-certificates curl gnupg ansible && \
-                    install -m 0755 -d /etc/apt/keyrings && \
-                    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes && \
-                    chmod a+r /etc/apt/keyrings/docker.gpg && \
-                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-                    apt-get update && \
-                    apt-get install -y docker-ce-cli
-                '''
-
                 echo 'Executing Ansible Playbook...'
                 sshagent(['aws-ec2-ssh-key']) {
                     sh 'ansible-playbook -i ansible/inventory.ini ansible/deploy.yml --private-key=$SSH_KEY_PATH -u ubuntu'
@@ -68,7 +72,7 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully! New image is now live on Docker Hub.'
+            echo 'Pipeline completed successfully! App is now live on AWS EC2.'
         }
         failure {
             echo 'Pipeline failed. Check the logs above for troubleshooting.'
