@@ -2,6 +2,7 @@
 - name: Deploy Spring Boot Application to AWS EC2
   hosts: aws_servers
   become: true
+  connection: ssh
 
   tasks:
     - name: Ensure the application network exists in Docker
