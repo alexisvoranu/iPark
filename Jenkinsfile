@@ -43,6 +43,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy via Ansible') {
+                    steps {
+                        echo 'Installing Ansible inside Jenkins container...'
+                        sh 'apt-get update && apt-get install -y ansible'
+
+                        echo 'Executing Ansible Playbook...'
+                        sshagent(['aws-ec2-ssh-key']) {
+                            sh 'ansible-playbook -i ansible/inventory.ini ansible/deploy.yml --private-key=$SSH_KEY_PATH -u ubuntu'
+                        }
+                    }
+                }
     }
 
     post {
