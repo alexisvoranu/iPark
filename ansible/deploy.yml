@@ -1,27 +1,31 @@
 ---
-- name: Deploy Spring Boot Application to AWS EC2
+- name: Deploy Spring Boot Application to Kubernetes (K3s) on AWS EC2
   hosts: aws_servers
   become: true
   connection: ssh
 
   tasks:
-    - name: Ensure the application network exists in Docker
-      community.docker.docker_network:
-        name: ipark-network
-        state: present
+    - name: Ensure k8s directory exists on EC2
+      ansible.builtin.file:
+        path: /home/ec2-user/k8s
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
 
-    - name: Deploy Spring Boot Application Container
-      community.docker.docker_container:
-        name: ipark-app
-        image: alexisvo/ipark-app:latest
-        state: started
-        restart_policy: always
-        network_mode: ipark-network
-        ports:
-          - "8080:8080"
-        env:
-          PORT: "8080"
-          URL: "18.196.102.251:8080"
-          STRIPE_API_KEY: "{{ lookup('env', 'STRIPE_API_KEY') }}"
-          STRIPE_API_PUBLIC_KEY: "{{ lookup('env', 'STRIPE_API_PUBLIC_KEY') }}"
-          STRIPE_WEBHOOK_SECRET: "{{ lookup('env', 'STRIPE_WEBHOOK_SECRET') }}"
+    - name: Copy Kubernetes configurations to server
+      ansible.builtin.copy:
+        src: "k8s/{{ item }}"
+        dest: "/home/ec2-user/k8s/{{ item }}"
+        owner: ec2-user
+        group: ec2-user
+        mode: '0644'
+      loop:
+        - ipark-deployment.yaml
+        - ipark-service.yaml
+
+    - name: Apply Kubernetes configurations
+      ansible.builtin.shell: |
+        kubectl apply -f /home/ec2-user/k8s/ipark-deployment.yaml
+        kubectl apply -f /home/ec2-user/k8s/ipark-service.yaml
+        kubectl rollout restart deployment ipark-deployment

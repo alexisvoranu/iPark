@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ipark-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ipark-app
+  template:
+    metadata:
+      labels:
+        app: ipark-app
+    spec:
+      containers:
+        - name: ipark-container
+          image: alexisvo/ipark-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xms128m -Xmx256m"
+            - name: STRIPE_API_KEY
+              value: "sk_test_pune_cheia_ta_aici"
+            - name: STRIPE_API_PUBLIC_KEY
+              value: "pk_test_pune_cheia_ta_aici"
+            - name: STRIPE_WEBHOOK_SECRET
+              value: "whsec_pune_secretul_tau_aici"
+            - name: URL
+              value: "http://3.72.53.233:32000"
+          resources:
+            limits:
+              memory: "350Mi"
+            requests:
+              memory: "150Mi"
