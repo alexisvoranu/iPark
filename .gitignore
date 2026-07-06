@@ -33,3 +33,11 @@ build/
 .vscode/
 
 .env
+
+.terraform/
+*.tfstate
+*.tfstate.*
+
+crash.log
+*.tfvars
+*.tfvars.json
