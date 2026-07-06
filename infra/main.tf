@@ -82,9 +82,20 @@ resource "aws_security_group" "server_sg" {
   }
 }
 
+resource "tls_private_key" "devops_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4000
+}
+
 resource "aws_key_pair" "deployer_key" {
   key_name   = "${var.environment}-key"
-  public_key = var.ssh_public_key
+  public_key = tls_private_key.devops_key.public_key_openssh
+}
+
+resource "local_file" "ssh_key" {
+  content         = tls_private_key.devops_key.private_key_pem
+  filename        = "${path.module}/ipark-devops-key.pem"
+  file_permission = "0400"
 }
 
 resource "aws_instance" "devops_server" {
