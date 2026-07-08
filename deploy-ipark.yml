@@ -1,0 +1,20 @@
+---
+- name: Deploy iPark Application
+  hosts: devops_server
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: Ensure iPark container is running
+      community.docker.docker_container:
+        name: ipark-app
+        image: alexisvo/ipark-backend:latest
+        state: started
+        restart_policy: always
+        published_ports:
+          - "80:8080"
+        env:
+          PORT: "8080"
+          URL: "http://{{ ansible_host }}"
+          STRIPE_API_KEY: "{{ lookup('ini', 'STRIPE_API_KEY type=properties file=.env') }}"
+          STRIPE_API_PUBLIC_KEY: "{{ lookup('ini', 'STRIPE_API_PUBLIC_KEY type=properties file=.env') }}"
+          STRIPE_WEBHOOK_SECRET: "{{ lookup('ini', 'STRIPE_WEBHOOK_SECRET type=properties file=.env') }}"
