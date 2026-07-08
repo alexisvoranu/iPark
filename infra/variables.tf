@@ -17,3 +17,13 @@ variable "ssh_public_key" {
   type        = string
   description = "The public SSH key used to connect to the EC2 instance"
 }
+
+variable "jenkins_instance_type" {
+  type        = string
+  description = "The instance type for the Jenkins automation server"
+}
+
+variable "jenkins_volume_size" {
+  type        = number
+  description = "The root volume size for the Jenkins server in GB"
+}

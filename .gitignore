@@ -34,7 +34,7 @@ build/
 
 .env
 *.pem
-inventory.yml
+ansible/inventory.yml
 
 .terraform/
 *.tfstate
