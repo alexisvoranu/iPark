@@ -18,6 +18,7 @@ pipeline {
         stage('Build & Push Docker Image') {
             steps {
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh 'chmod +x mvnw'
                 sh 'docker build -t $DOCKER_IMAGE .'
                 sh 'docker push $DOCKER_IMAGE'
             }
