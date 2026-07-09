@@ -1,4 +1,3 @@
----
 - name: Install and Configure Jenkins
   hosts: automation_servers
   become: true
@@ -36,12 +35,22 @@
         state: started
         enabled: true
 
+    - name: Purge conflicting packages
+      ansible.builtin.apt:
+        name:
+          - containerd
+          - docker
+          - docker.io
+          - containerd.io
+        state: absent
+        purge: true
+
     - name: Install Docker and Ansible
       ansible.builtin.apt:
         name:
           - docker.io
           - ansible
-        state: present
+        state: latest
         update_cache: true
 
     - name: Add jenkins user to docker group
