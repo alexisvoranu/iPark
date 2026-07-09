@@ -1,0 +1,54 @@
+name: iPark CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Artifact with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest
+
+      - name: Deploy to AWS EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stop ipark-container || true
+            docker rm ipark-container || true
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest
+            docker run -d \
+              --name ipark-container \
+              -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
+              -e STRIPE_API_KEY="${{ secrets.STRIPE_API_KEY }}" \
+              -e STRIPE_API_PUBLIC_KEY="${{ secrets.STRIPE_API_PUBLIC_KEY }}" \
+              -e STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+              -e URL="${{ secrets.URL }}" \
+              -e PORT="${{ secrets.PORT }}" \
+              ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest
