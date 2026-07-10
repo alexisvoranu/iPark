@@ -44,7 +44,7 @@ jobs:
 
       - name: Deploy to Amazon ECS Fargate
         env:
-          ECS_CLUSTER: ipark_cluster
-          ECS_SERVICE: ipark_service
+          ECS_CLUSTER: ipark-devops-ipark-cluster
+          ECS_SERVICE: ipark-devops-ipark-service
         run: |
           aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
