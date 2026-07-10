@@ -44,7 +44,7 @@ jobs:
 
       - name: Deploy to Amazon ECS Fargate
         env:
-          ECS_CLUSTER: ipark-cluster
+          ECS_CLUSTER: ipark-devops-ipark-cluster
           ECS_SERVICE: ipark-devops-ipark-service
           STRIPE_SECRET: ${{ secrets.STRIPE_API_KEY }}
           STRIPE_PUBLIC: ${{ secrets.STRIPE_API_PUBLIC_KEY }}
