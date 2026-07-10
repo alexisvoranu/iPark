@@ -128,8 +128,11 @@ resource "aws_ecs_task_definition" "ipark_task" {
         }
       ]
       environment = [
-        { name = "PORT", value = "8080" },
-        { name = "URL", value = "http://ipark-devops-ipark-alb-402740769.eu-central-1.elb.amazonaws.com" }
+        { name = "PORT", value = tostring(var.port) },
+        { name = "URL", value = var.url },
+        { name = "STRIPE_API_KEY", value = var.stripe_api_key },
+        { name = "STRIPE_API_PUBLIC_KEY", value = var.stripe_api_public_key },
+        { name = "STRIPE_WEBHOOK_SECRET", value = var.stripe_webhook_secret }
       ]
       logConfiguration = {
         logDriver = "awslogs"

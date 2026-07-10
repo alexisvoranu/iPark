@@ -27,3 +27,28 @@ variable "jenkins_volume_size" {
   type        = number
   description = "The root volume size for the Jenkins server in GB"
 }
+
+variable "stripe_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "stripe_api_public_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "stripe_webhook_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "url" {
+  type      = string
+  sensitive = true
+}
+
+variable "port" {
+  type      = number
+  sensitive = true
+}
