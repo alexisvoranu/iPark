@@ -43,11 +43,6 @@ variable "stripe_webhook_secret" {
   sensitive = true
 }
 
-variable "url" {
-  type      = string
-  sensitive = true
-}
-
 variable "port" {
   type      = number
   sensitive = true
