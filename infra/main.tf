@@ -131,6 +131,14 @@ resource "aws_ecs_task_definition" "ipark_task" {
         { name = "PORT", value = "8080" },
         { name = "URL", value = "http://ipark-devops-ipark-alb-402740769.eu-central-1.elb.amazonaws.com" }
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options   = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
+          "awslogs-region"        = "eu-central-1"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
     }
   ])
 }
@@ -208,4 +216,9 @@ resource "aws_lb_listener" "ipark_listener" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ipark_tg.arn
   }
+}
+
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/${var.environment}-ipark-apps"
+  retention_in_days = 7
 }
