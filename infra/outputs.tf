@@ -1,4 +1,4 @@
-output "instance_public_ip" {
-  value       = aws_instance.devops_server.public_ip
-  description = "The public IP address of the Jenkins server"
+output "ecr_repository_url" {
+  value       = aws_ecr_repository.ipark_app_repo.repository_url
+  description = "The URL of the ECR repository"
 }

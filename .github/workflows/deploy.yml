@@ -1,4 +1,4 @@
-name: iPark CI/CD Pipeline
+name: iPark ECS CI/CD Pipeline
 
 on:
   push:
@@ -22,33 +22,29 @@ jobs:
       - name: Build Artifact with Maven
         run: mvn clean package -DskipTests
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
 
-      - name: Build and Push Docker Image
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ipark-app
+          IMAGE_TAG: latest
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Deploy to AWS EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            docker stop ipark-container || true
-            docker rm ipark-container || true
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest
-            docker run -d \
-              --name ipark-container \
-              -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
-              -e STRIPE_API_KEY="${{ secrets.STRIPE_API_KEY }}" \
-              -e STRIPE_API_PUBLIC_KEY="${{ secrets.STRIPE_API_PUBLIC_KEY }}" \
-              -e STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
-              -e URL="${{ secrets.URL }}" \
-              -e PORT="${{ secrets.PORT }}" \
-              ${{ secrets.DOCKERHUB_USERNAME }}/ipark-app:latest
+      - name: Deploy to Amazon ECS Fargate
+        env:
+          ECS_CLUSTER: ipark_cluster
+          ECS_SERVICE: ipark_service
+        run: |
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment

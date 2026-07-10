@@ -50,13 +50,6 @@ resource "aws_security_group" "server_sg" {
   vpc_id      = aws_vpc.main_vpc.id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
@@ -82,36 +75,76 @@ resource "aws_security_group" "server_sg" {
   }
 }
 
-resource "tls_private_key" "devops_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4000
-}
+resource "aws_ecr_repository" "ipark_app_repo" {
+  name                 = "ipark-app"
+  image_tag_mutability = "MUTABLE"
 
-resource "aws_key_pair" "deployer_key" {
-  key_name   = "${var.environment}-key"
-  public_key = tls_private_key.devops_key.public_key_openssh
-}
-
-resource "local_file" "ssh_key" {
-  content         = tls_private_key.devops_key.private_key_pem
-  filename        = "${path.module}/ipark-devops-key.pem"
-  file_permission = "0400"
-}
-
-resource "aws_instance" "devops_server" {
-  ami                    = "ami-0084a47cc718c111a"
-  instance_type          = var.instance_type
-  subnet_id              = aws_subnet.public_subnet.id
-  vpc_security_group_ids = [aws_security_group.server_sg.id]
-  key_name               = aws_key_pair.deployer_key.key_name
-
-  root_block_device {
-    volume_size           = 30
-    volume_type           = "gp3"
-    delete_on_termination = true
+  image_scanning_configuration {
+    scan_on_push = true
   }
+}
 
-  tags = {
-    Name = "${var.environment}-server"
+resource "aws_ecs_cluster" "ipark_cluster" {
+  name = "${var.environment}-ipark-cluster"
+}
+
+resource "aws_iam_role" "ecs_execution_role" {
+  name = "${var.environment}-ecs-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = { Service = "ecs-tasks.amazonaws.com" }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_execution_attach" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_ecs_task_definition" "ipark_task" {
+  family                   = "${var.environment}-ipark-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name         = "ipark-container"
+      image        = "${aws_ecr_repository.ipark_app_repo.repository_url}:latest"
+      essential    = true
+      portMappings = [
+        {
+          containerPort = 8080
+          hostPort      = 8080
+        }
+      ]
+      environment = [
+        { name = "PORT", value = "8080" },
+        { name = "URL", value = "http://3.70.204.164" }
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_service" "ipark_service" {
+  name            = "${var.environment}-ipark-service"
+  cluster         = aws_ecs_cluster.ipark_cluster.id
+  task_definition = aws_ecs_task_definition.ipark_task.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = [aws_subnet.public_subnet.id]
+    security_groups  = [aws_security_group.server_sg.id]
+    assign_public_ip = true
   }
 }
