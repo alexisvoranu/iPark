@@ -44,7 +44,23 @@ jobs:
 
       - name: Deploy to Amazon ECS Fargate
         env:
-          ECS_CLUSTER: ipark-devops-ipark-cluster
-          ECS_SERVICE: ipark-devops-ipark-service
+          ECS_CLUSTER: dev-ipark-cluster
+          ECS_SERVICE: dev-ipark-service
+          STRIPE_SECRET: ${{ secrets.STRIPE_API_KEY }}
+          STRIPE_PUBLIC: ${{ secrets.STRIPE_API_PUBLIC_KEY }}
+          STRIPE_WEBHOOK: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
         run: |
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+          aws ecs describe-task-definition --task-definition dev-ipark-task --query taskDefinition > task-def.json
+          
+          jq --arg secret "$STRIPE_SECRET" \
+             --arg public "$STRIPE_PUBLIC" \
+             --arg webhook "$STRIPE_WEBHOOK" \
+             '.containerDefinitions[0].environment += [
+               {"name": "STRIPE_API_KEY", "value": $secret},
+               {"name": "STRIPE_API_PUBLIC_KEY", "value": $public},
+               {"name": "STRIPE_WEBHOOK_SECRET", "value": $webhook}
+             ]' task-def.json > new-task-def.json
+          
+          NEW_TASK_ARN=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json --query taskDefinition.taskDefinitionArn --output text)
+          
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_ARN --force-new-deployment
