@@ -129,7 +129,7 @@ resource "aws_ecs_task_definition" "ipark_task" {
       ]
       environment = [
         { name = "PORT", value = "8080" },
-        { name = "URL", value = "http://3.70.204.164" }
+        { name = "URL", value = "http://ipark-devops-ipark-alb-402740769.eu-central-1.elb.amazonaws.com" }
       ]
     }
   ])
@@ -146,5 +146,66 @@ resource "aws_ecs_service" "ipark_service" {
     subnets          = [aws_subnet.public_subnet.id]
     security_groups  = [aws_security_group.server_sg.id]
     assign_public_ip = true
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.ipark_tg.arn
+    container_name   = "ipark-container"
+    container_port   = 8080
+  }
+
+  depends_on = [aws_lb_listener.ipark_listener]
+}
+
+resource "aws_subnet" "public_subnet_b" {
+  vpc_id                  = aws_vpc.main_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}b"
+
+  tags = {
+    Name = "${var.environment}-public-subnet-b"
+  }
+}
+
+
+resource "aws_route_table_association" "public_assoc_b" {
+  subnet_id      = aws_subnet.public_subnet_b.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_lb" "ipark_alb" {
+  name               = "${var.environment}-ipark-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.server_sg.id]
+  subnets            = [aws_subnet.public_subnet.id, aws_subnet.public_subnet_b.id]
+}
+
+resource "aws_lb_target_group" "ipark_tg" {
+  name        = "${var.environment}-ipark-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main_vpc.id
+  target_type = "ip"
+
+  health_check {
+    path                = "/iPark"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 30
+    matcher             = "200"
+  }
+}
+
+resource "aws_lb_listener" "ipark_listener" {
+  load_balancer_arn = aws_lb.ipark_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ipark_tg.arn
   }
 }
