@@ -129,10 +129,7 @@ resource "aws_ecs_task_definition" "ipark_task" {
       ]
       environment = [
         { name = "PORT", value = tostring(var.port) },
-        { name = "URL", value = "http://${aws_lb.ipark_alb.dns_name}" },
-        { name = "STRIPE_API_KEY", value = var.stripe_api_key },
-        { name = "STRIPE_API_PUBLIC_KEY", value = var.stripe_api_public_key },
-        { name = "STRIPE_WEBHOOK_SECRET", value = var.stripe_webhook_secret }
+        { name = "URL", value = "http://${aws_lb.ipark_alb.dns_name}" }
       ]
       logConfiguration = {
         logDriver = "awslogs"
