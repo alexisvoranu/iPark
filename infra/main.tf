@@ -180,7 +180,6 @@ resource "aws_subnet" "public_subnet_b" {
   }
 }
 
-
 resource "aws_route_table_association" "public_assoc_b" {
   subnet_id      = aws_subnet.public_subnet_b.id
   route_table_id = aws_route_table.public_rt.id
@@ -227,7 +226,25 @@ resource "aws_cloudwatch_log_group" "ecs_logs" {
   retention_in_days = 7
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
-  role       = aws_iam_role.ecs_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+resource "aws_s3_bucket" "terraform_state" {
+  bucket        = "ipark-terraform-state-bucket"
+  force_destroy = false
+}
+
+resource "aws_s3_bucket_versioning" "state_versioning" {
+  bucket = aws_s3_bucket.terraform_state.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_dynamodb_table" "terraform_locks" {
+  name         = "ipark-terraform-locks"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
 }

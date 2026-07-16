@@ -7,6 +7,14 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "s3" {
+    bucket         = "ipark-terraform-state-bucket"
+    key            = "dev/terraform.tfstate"
+    region         = "eu-central-1"
+    dynamodb_table = "ipark-terraform-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
