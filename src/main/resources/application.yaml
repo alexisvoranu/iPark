@@ -1,6 +1,8 @@
 spring:
   application:
     name: iPark
+  config:
+    import: "optional:aws-secretsmanager:ipark/production/secrets"
   datasource:
     url: jdbc:h2:mem:parkingdb
     driverClassName: org.h2.Driver

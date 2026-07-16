@@ -9,11 +9,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "ipark-terraform-state-bucket"
-    key            = "dev/terraform.tfstate"
-    region         = "eu-central-1"
-    dynamodb_table = "ipark-terraform-locks"
-    encrypt        = true
+    bucket       = "ipark-terraform-state-bucket"
+    key          = "dev/terraform.tfstate"
+    region       = "eu-central-1"
+    use_lockfile = true
+    encrypt      = true
   }
 }
 

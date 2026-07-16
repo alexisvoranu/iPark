@@ -287,3 +287,33 @@ resource "aws_iam_role_policy_attachment" "admin_access" {
   role       = aws_iam_role.github_actions_role.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
+
+resource "aws_secretsmanager_secret" "app_secrets" {
+  name                    = "ipark/production/secrets"
+  recovery_window_in_days = 0
+}
+
+resource "aws_iam_policy" "ecs_secrets_policy" {
+  name        = "${var.environment}-ecs-secrets-policy"
+  description = "Allows ECS task execution role to pull secrets from Secrets Manager"
+
+  policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.app_secrets.arn
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_secrets_attach" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = aws_iam_policy.ecs_secrets_policy.arn
+}
