@@ -1,10 +1,8 @@
-name: iPark Multi-Environment K8s CI/CD Pipeline
+name: iPark ECS CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - develop
-      - master
+    branches: [ "develop" ]
 
 permissions:
   id-token: write
@@ -18,21 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set Environment Variables
-        id: set-env
-        run: |
-          if [ "${{ github.ref_name }}" = "develop" ]; then
-            echo "ENV_NAME=dev" >> $GITHUB_ENV
-            echo "EKS_CLUSTER=dev-ipark-cluster" >> $GITHUB_ENV
-            echo "IMAGE_TAG=dev-latest" >> $GITHUB_ENV
-            echo "ROLE_ARN=arn:aws:iam::833333701463:role/dev-ipark-github-actions-role" >> $GITHUB_ENV
-          else
-            echo "ENV_NAME=prod" >> $GITHUB_ENV
-            echo "EKS_CLUSTER=prod-ipark-cluster" >> $GITHUB_ENV
-            echo "IMAGE_TAG=prod-latest" >> $GITHUB_ENV
-            echo "ROLE_ARN=arn:aws:iam::833333701463:role/prod-ipark-github-actions-role" >> $GITHUB_ENV
-          fi
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -43,37 +26,28 @@ jobs:
       - name: Build Artifact with Maven
         run: mvn clean package -DskipTests
 
-      - name: Configure AWS Credentials with OIDC
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.ROLE_ARN }}
+          role-to-assume: arn:aws:iam::833333701463:role/ipark-github-actions-role
           aws-region: eu-central-1
 
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ipark-app
+          IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  
 
-      - name: Update Kubeconfig
-        run: |
-          aws eks update-kubeconfig --name $EKS_CLUSTER --region eu-central-1
-
-      - name: Deploy to Target Environment Kubernetes
+      - name: Deploy to Amazon ECS Fargate
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ipark-app
+          ECS_CLUSTER: ipark-devops-ipark-cluster
+          ECS_SERVICE: ipark-devops-ipark-service
         run: |
-          kubectl apply -f k8s/configmap.yaml
-          kubectl apply -f k8s/service.yaml
-          kubectl apply -f k8s/ingress.yaml
-          kubectl set env -f k8s/deployment.yaml SPRING_PROFILES_ACTIVE=$ENV_NAME --local -o yaml | \
-          kubectl set image -f - ipark-container=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --local -o yaml | \
-          kubectl apply -f -
-          kubectl rollout restart deployment/ipark-deployment
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment

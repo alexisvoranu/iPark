@@ -1,41 +1,19 @@
 variable "aws_region" {
-  type    = string
-  default = "eu-central-1"
+  type        = string
+  description = "The AWS region where resources will be created"
 }
 
 variable "environment" {
-  type = string
+  type        = string
+  description = "The environment name tag used to identify resources"
 }
 
-variable "vpc_cidr" {
-  type = string
+variable "instance_type" {
+  type        = string
+  description = "The size of the EC2 instance to host our tools"
 }
 
-variable "public_subnet_cidrs" {
-  type = list(string)
-}
-
-variable "availability_zones" {
-  type = list(string)
-}
-
-variable "k8s_version" {
-  type    = string
-  default = "1.31"
-}
-
-variable "node_instance_type" {
-  type = string
-}
-
-variable "node_desired_size" {
-  type = number
-}
-
-variable "node_max_size" {
-  type = number
-}
-
-variable "node_min_size" {
-  type = number
+variable "port" {
+  type      = number
+  sensitive = true
 }
