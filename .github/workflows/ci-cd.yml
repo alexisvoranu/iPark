@@ -2,7 +2,7 @@ name: iPark ECS CI/CD Pipeline
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "develop", "master" ]
 
 permissions:
   id-token: write
@@ -26,6 +26,21 @@ jobs:
       - name: Build Artifact with Maven
         run: mvn clean package -DskipTests
 
+      - name: Set Environment Variables
+        id: env-setup
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "ENV_NAME=prod" >> $GITHUB_ENV
+            echo "ECS_CLUSTER=prod-ipark-cluster" >> $GITHUB_ENV
+            echo "ECS_SERVICE=prod-ipark-service" >> $GITHUB_ENV
+            echo "IMAGE_TAG=prod-latest" >> $GITHUB_ENV
+          else
+            echo "ENV_NAME=dev" >> $GITHUB_ENV
+            echo "ECS_CLUSTER=dev-ipark-cluster" >> $GITHUB_ENV
+            echo "ECS_SERVICE=dev-ipark-service" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev-latest" >> $GITHUB_ENV
+          fi
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -40,14 +55,11 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ipark-app
-          IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Deploy to Amazon ECS Fargate
-        env:
-          ECS_CLUSTER: ipark-devops-ipark-cluster
-          ECS_SERVICE: ipark-devops-ipark-service
         run: |
           aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
