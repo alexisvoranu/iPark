@@ -1,34 +1,34 @@
 variable "aws_region" {
-  type        = string
-  description = "The AWS region where resources will be created"
+  type    = string
+  default = "eu-central-1"
 }
 
 variable "environment" {
-  type        = string
-  description = "The environment name tag used to identify resources"
+  type    = string
+  default = "dev"
 }
 
-variable "instance_type" {
-  type        = string
-  description = "The size of the EC2 instance to host our tools"
+variable "vpc_cidr" {
+  type    = string
+  default = "10.0.0.0/16"
 }
 
-variable "ssh_public_key" {
-  type        = string
-  description = "The public SSH key used to connect to the EC2 instance"
+variable "public_subnet_a_cidr" {
+  type    = string
+  default = "10.0.1.0/24"
 }
 
-variable "jenkins_instance_type" {
-  type        = string
-  description = "The instance type for the Jenkins automation server"
-}
-
-variable "jenkins_volume_size" {
-  type        = number
-  description = "The root volume size for the Jenkins server in GB"
+variable "public_subnet_b_cidr" {
+  type    = string
+  default = "10.0.2.0/24"
 }
 
 variable "port" {
-  type      = number
-  sensitive = true
+  type    = number
+  default = 8080
+}
+
+variable "github_repo" {
+  type    = string
+  default = "alexisvoranu/iPark"
 }
