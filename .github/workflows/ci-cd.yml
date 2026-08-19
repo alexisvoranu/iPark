@@ -2,7 +2,17 @@ name: iPark ECS CI/CD Pipeline
 
 on:
   push:
-    branches: [ "develop", "master" ]
+    branches: [ "develop", "main" ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Alege mediul pentru deploy"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
 
 permissions:
   id-token: write
@@ -29,13 +39,20 @@ jobs:
       - name: Set Environment Variables
         id: env-setup
         run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "ENV_NAME=prod" >> $GITHUB_ENV
+          TARGET_ENV="${{ github.event.inputs.environment }}"
+          if [ -z "$TARGET_ENV" ]; then
+            if [ "${{ github.ref_name }}" = "main" ]; then
+              TARGET_ENV="prod"
+            else
+              TARGET_ENV="dev"
+            fi
+          fi
+
+          if [ "$TARGET_ENV" = "prod" ]; then
             echo "ECS_CLUSTER=prod-ipark-cluster" >> $GITHUB_ENV
             echo "ECS_SERVICE=prod-ipark-service" >> $GITHUB_ENV
             echo "IMAGE_TAG=prod-latest" >> $GITHUB_ENV
           else
-            echo "ENV_NAME=dev" >> $GITHUB_ENV
             echo "ECS_CLUSTER=dev-ipark-cluster" >> $GITHUB_ENV
             echo "ECS_SERVICE=dev-ipark-service" >> $GITHUB_ENV
             echo "IMAGE_TAG=dev-latest" >> $GITHUB_ENV
