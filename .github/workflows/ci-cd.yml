@@ -115,7 +115,7 @@ jobs:
           kubectl apply -f k8s/ingress.yaml
           kubectl apply -f k8s/deployment.yaml
           
-          if ! kubectl rollout status deployment/ipark-deployment --timeout=150s; then
+          if ! kubectl rollout status deployment/ipark-deployment --timeout=240s; then
             echo "=== PODS STATUS ==="
             kubectl get pods -o wide
             echo "=== PODS EVENTS / ERRORS ==="
