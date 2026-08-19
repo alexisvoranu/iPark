@@ -48,6 +48,8 @@ jobs:
             fi
           fi
 
+          echo "TARGET_ENV=$TARGET_ENV" >> $GITHUB_ENV
+
           if [ "$TARGET_ENV" = "prod" ]; then
             echo "EKS_CLUSTER=prod-ipark-eks" >> $GITHUB_ENV
             echo "IMAGE_TAG=prod-${{ github.sha }}" >> $GITHUB_ENV
@@ -82,9 +84,28 @@ jobs:
         with:
           version: 'latest'
 
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.4'
+
       - name: Update Kubeconfig
         run: |
           aws eks update-kubeconfig --region eu-central-1 --name ${{ env.EKS_CLUSTER }}
+
+      - name: Install Secrets Store CSI Driver & AWS Provider
+        run: |
+          helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+          helm repo add aws-secrets-manager https://aws.github.io/secrets-store-csi-driver-provider-aws
+          helm repo update
+
+          helm upgrade --install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver \
+            --namespace kube-system \
+            --set syncSecret.enabled=true \
+            --set enableSecretRotation=true
+
+          helm upgrade --install secrets-provider-aws aws-secrets-manager/secrets-store-csi-driver-provider-aws \
+            --namespace kube-system
 
       - name: Deploy Manifests to EKS
         env:
@@ -93,6 +114,7 @@ jobs:
           AWS_REGION: eu-central-1
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" k8s/deployment.yaml
+          sed -i "s|ENVIRONMENT_PLACEHOLDER|$TARGET_ENV|g" k8s/secret-provider.yaml
           kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/secret-provider.yaml
           kubectl apply -f k8s/service.yaml
