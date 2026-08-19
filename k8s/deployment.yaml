@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ipark-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ipark-backend
@@ -28,3 +28,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: "-Xms128m -Xmx256m"
+          envFrom:
+            - configMapRef:
+                name: ipark-config
+            - secretRef:
+                name: ipark-secrets
