@@ -1,6 +1,11 @@
 resource "aws_secretsmanager_secret" "app_secrets" {
-  name                    = "ipark/production/secrets"
+  name                    = "ipark/${var.environment}/secrets"
   recovery_window_in_days = 0
+}
+
+resource "aws_ecr_repository" "ipark_app" {
+  name         = "ipark-app"
+  force_delete = true
 }
 
 module "vpc" {
@@ -21,15 +26,12 @@ module "iam" {
   app_secrets_arn = aws_secretsmanager_secret.app_secrets.arn
 }
 
-module "ecs" {
-  source                 = "./modules/ecs"
-  environment            = var.environment
-  aws_region             = var.aws_region
-  vpc_id                 = module.vpc.vpc_id
-  public_subnet_id       = module.vpc.public_subnet_id
-  public_subnet_b_id     = module.vpc.public_subnet_b_id
-  server_sg_id           = module.security.server_sg_id
-  ecs_execution_role_arn = module.iam.ecs_execution_role_arn
-  app_secrets_arn        = aws_secretsmanager_secret.app_secrets.arn
-  port                   = var.port
+module "eks" {
+  source             = "./modules/eks"
+  environment        = var.environment
+  aws_region         = var.aws_region
+  vpc_id             = module.vpc.vpc_id
+  public_subnet_id   = module.vpc.public_subnet_id
+  public_subnet_b_id = module.vpc.public_subnet_b_id
+  server_sg_id       = module.security.server_sg_id
 }

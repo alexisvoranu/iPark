@@ -2,11 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ipark-ingress
+  namespace: default
   annotations:
-    alb.ingress.kubernetes.io/scheme: "internet-facing"
-    alb.ingress.kubernetes.io/target-type: "ip"
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
 spec:
-  ingressClassName: alb
   rules:
     - http:
         paths:
@@ -16,4 +18,4 @@ spec:
               service:
                 name: ipark-service
                 port:
-                  number: 80
+                  number: 8080

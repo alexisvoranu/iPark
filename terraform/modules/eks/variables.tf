@@ -21,15 +21,3 @@ variable "public_subnet_b_id" {
 variable "server_sg_id" {
   type = string
 }
-
-variable "ecs_execution_role_arn" {
-  type = string
-}
-
-variable "app_secrets_arn" {
-  type = string
-}
-
-variable "port" {
-  type = number
-}
