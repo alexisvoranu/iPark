@@ -30,6 +30,11 @@ resource "aws_eks_cluster" "main" {
     security_group_ids = [var.server_sg_id]
   }
 
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }
 
@@ -90,6 +95,8 @@ resource "aws_eks_access_entry" "github_actions" {
   cluster_name  = aws_eks_cluster.main.name
   principal_arn = var.github_actions_role_arn
   type          = "STANDARD"
+
+  depends_on = [aws_eks_cluster.main]
 }
 
 resource "aws_eks_access_policy_association" "github_actions_admin" {
