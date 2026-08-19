@@ -22,14 +22,7 @@ variable "server_sg_id" {
   type = string
 }
 
-variable "ecs_execution_role_arn" {
-  type = string
-}
-
-variable "app_secrets_arn" {
-  type = string
-}
-
-variable "port" {
-  type = number
+variable "github_actions_role_arn" {
+  type        = string
+  description = "IAM Role ARN used by GitHub Actions"
 }
