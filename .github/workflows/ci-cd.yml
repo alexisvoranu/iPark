@@ -97,4 +97,15 @@ jobs:
           kubectl apply -f k8s/service.yaml
           kubectl apply -f k8s/ingress.yaml
           kubectl apply -f k8s/deployment.yaml
+          
+          echo "=== POD STATUS ==="
+          kubectl get pods -o wide
+          
+          echo "=== DESCRIBE PODS ==="
+          kubectl describe pods -l app=ipark-backend
+          
+          echo "=== CONTAINER LOGS ==="
+          kubectl logs -l app=ipark-backend --tail=100 --all-containers=true
+          
           kubectl rollout status deployment/ipark-deployment --timeout=180s
+          kubectl get svc ipark-service
