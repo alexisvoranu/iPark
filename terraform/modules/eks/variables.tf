@@ -21,3 +21,8 @@ variable "public_subnet_b_id" {
 variable "server_sg_id" {
   type = string
 }
+
+variable "github_actions_role_arn" {
+  type        = string
+  description = "IAM Role ARN used by GitHub Actions"
+}
