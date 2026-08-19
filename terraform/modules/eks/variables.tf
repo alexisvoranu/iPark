@@ -26,3 +26,8 @@ variable "github_actions_role_arn" {
   type        = string
   description = "IAM Role ARN used by GitHub Actions"
 }
+
+variable "eks_secrets_policy_arn" {
+  type        = string
+  description = "ARN-ul politicii IAM pentru accesul la secrete"
+}

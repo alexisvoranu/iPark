@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ipark-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ipark-backend
@@ -12,6 +12,13 @@ spec:
       labels:
         app: ipark-backend
     spec:
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "ipark-secrets-provider"
       containers:
         - name: ipark-backend
           image: IMAGE_PLACEHOLDER
@@ -28,3 +35,12 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: "-Xms128m -Xmx256m"
+          envFrom:
+            - configMapRef:
+                name: ipark-config
+            - secretRef:
+                name: ipark-secrets
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: "/mnt/secrets-store"
+              readOnly: true

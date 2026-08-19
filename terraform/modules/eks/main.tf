@@ -108,3 +108,8 @@ resource "aws_eks_access_policy_association" "github_actions_admin" {
     type = "cluster"
   }
 }
+
+resource "aws_iam_role_policy_attachment" "eks_secrets_attach" {
+  role       = aws_iam_role.eks_nodes_role.name
+  policy_arn = var.eks_secrets_policy_arn
+}
