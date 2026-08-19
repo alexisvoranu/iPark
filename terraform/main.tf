@@ -35,6 +35,5 @@ module "eks" {
   public_subnet_b_id      = module.vpc.public_subnet_b_id
   server_sg_id            = module.security.server_sg_id
   github_actions_role_arn = module.iam.github_actions_role_arn
-  eks_secrets_policy_arn  = module.iam.eks_secrets_policy_arn
 }
 
