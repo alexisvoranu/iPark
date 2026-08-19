@@ -2,44 +2,29 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ipark-deployment
-  namespace: default
-  labels:
-    app: ipark-app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: ipark-app
+      app: ipark-backend
   template:
     metadata:
       labels:
-        app: ipark-app
+        app: ipark-backend
     spec:
       containers:
         - name: ipark-backend
-          image: 833333701463.dkr.ecr.eu-central-1.amazonaws.com/ipark-app:latest
+          image: ipark-app:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-          envFrom:
-            - configMapRef:
-                name: ipark-config
           resources:
             requests:
-              cpu: "250m"
-              memory: "512Mi"
+              memory: "256Mi"
+              cpu: "100m"
             limits:
-              cpu: "500m"
-              memory: "1024Mi"
-          readinessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 15
+              memory: "384Mi"
+              cpu: "300m"
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xms128m -Xmx256m"
