@@ -2,6 +2,6 @@ variable "environment" {
   type = string
 }
 
-variable "github_repo" {
+variable "app_secrets_arn" {
   type = string
 }
