@@ -1,7 +1,4 @@
 variable "environment" {
-  type = string
-}
-
-variable "app_secrets_arn" {
-  type = string
+  type        = string
+  description = "Target deployment environment (dev or prod)"
 }

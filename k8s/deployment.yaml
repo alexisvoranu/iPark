@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ipark-deployment
 spec:
-  replicas: 1
+  replicas: REPLICAS_PLACEHOLDER
   selector:
     matchLabels:
       app: ipark-backend
@@ -33,3 +33,19 @@ spec:
                 name: ipark-config
             - secretRef:
                 name: ipark-secrets
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5

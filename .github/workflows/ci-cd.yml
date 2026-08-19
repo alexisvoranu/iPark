@@ -54,10 +54,12 @@ jobs:
             echo "EKS_CLUSTER=prod-ipark-eks" >> $GITHUB_ENV
             echo "IMAGE_TAG=prod-${{ github.sha }}" >> $GITHUB_ENV
             echo "AWS_ROLE_ARN=arn:aws:iam::833333701463:role/prod-ipark-github-actions-role" >> $GITHUB_ENV
+            echo "REPLICAS=1" >> $GITHUB_ENV
           else
             echo "EKS_CLUSTER=dev-ipark-eks" >> $GITHUB_ENV
             echo "IMAGE_TAG=dev-${{ github.sha }}" >> $GITHUB_ENV
             echo "AWS_ROLE_ARN=arn:aws:iam::833333701463:role/dev-ipark-github-actions-role" >> $GITHUB_ENV
+            echo "REPLICAS=1" >> $GITHUB_ENV
           fi
 
       - name: Configure AWS Credentials
@@ -75,9 +77,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ipark-app
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.TARGET_ENV }}-latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.TARGET_ENV }}-latest
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
@@ -103,6 +105,8 @@ jobs:
             --from-literal=STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET" \
             --dry-run=client -o yaml | kubectl apply -f -
           
+          sed -i "s|REPLICAS_PLACEHOLDER|$REPLICAS|g" k8s/deployment.yaml
+          sed -i "s|ENVIRONMENT_PLACEHOLDER|$TARGET_ENV|g" k8s/configmap.yaml
           sed -i "s|IMAGE_PLACEHOLDER|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" k8s/deployment.yaml
           
           kubectl delete pods --field-selector status.phase=Failed --ignore-not-found=true

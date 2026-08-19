@@ -6,6 +6,10 @@ resource "aws_secretsmanager_secret" "app_secrets" {
 resource "aws_ecr_repository" "ipark_app" {
   name         = "ipark-app"
   force_delete = true
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
 }
 
 module "vpc" {
@@ -21,9 +25,8 @@ module "security" {
 }
 
 module "iam" {
-  source          = "./modules/iam"
-  environment     = var.environment
-  app_secrets_arn = aws_secretsmanager_secret.app_secrets.arn
+  source      = "./modules/iam"
+  environment = var.environment
 }
 
 module "eks" {
@@ -36,4 +39,3 @@ module "eks" {
   server_sg_id            = module.security.server_sg_id
   github_actions_role_arn = module.iam.github_actions_role_arn
 }
-
