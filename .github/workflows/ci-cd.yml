@@ -92,9 +92,17 @@ jobs:
           ECR_REPOSITORY: ipark-app
           AWS_REGION: eu-central-1
         run: |
+          kubectl delete deployment ipark-deployment --ignore-not-found=true
           kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/service.yaml
           kubectl apply -f k8s/ingress.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl set image deployment/ipark-deployment ipark-backend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          
+          echo "=== PODS STATUS ==="
+          kubectl get pods -o wide
+          
+          echo "=== PODS EVENTS / ERRORS ==="
+          kubectl describe pods
+          
           kubectl rollout status deployment/ipark-deployment --timeout=180s
