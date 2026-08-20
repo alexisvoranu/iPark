@@ -72,14 +72,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and Push Docker Image to ECR
+      - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ipark-app
+          ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-ipark-app
+          IMAGE_TAG: ${{ env.ENVIRONMENT }}-${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.TARGET_ENV }}-latest .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.TARGET_ENV }}-latest
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
