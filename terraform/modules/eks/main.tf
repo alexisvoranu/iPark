@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "eks_cluster_role" {
   name = "${var.environment}-eks-cluster-role"
 
@@ -23,7 +25,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
 resource "aws_eks_cluster" "main" {
   name     = "${var.environment}-ipark-eks"
   role_arn = aws_iam_role.eks_cluster_role.arn
-  version  = "1.31"
+  version  = "1.32"
 
   vpc_config {
     subnet_ids         = [var.public_subnet_id, var.public_subnet_b_id]
@@ -75,7 +77,7 @@ resource "aws_eks_node_group" "main" {
   node_group_name = "${var.environment}-default-nodes"
   node_role_arn   = aws_iam_role.eks_nodes_role.arn
   subnet_ids      = [var.public_subnet_id, var.public_subnet_b_id]
-  instance_types  = var.environment == "prod" ? ["t3.small"] : ["t3.micro"]
+  instance_types  = ["t3.small"]
   ami_type        = "AL2023_x86_64_STANDARD"
 
   scaling_config {
@@ -107,4 +109,6 @@ resource "aws_eks_access_policy_association" "github_actions_admin" {
   access_scope {
     type = "cluster"
   }
+
+  depends_on = [aws_eks_access_entry.github_actions]
 }

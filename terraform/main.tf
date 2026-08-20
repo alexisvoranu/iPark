@@ -4,8 +4,8 @@ resource "aws_secretsmanager_secret" "app_secrets" {
 }
 
 resource "aws_ecr_repository" "ipark_app" {
-  name         = "ipark-app"
-  force_delete = true
+  name                 = "${var.environment}-ipark-app"
+  image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
