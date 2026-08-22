@@ -92,6 +92,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          sed -i "s|image: .*|image: ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}|g" k8s/deployment.yaml
+          sed -i "s|IMAGE_PLACEHOLDER|${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}|g" k8s/deployment.yaml
+          sed -i "s|REPLICAS_PLACEHOLDER|${REPLICAS}|g" k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl rollout status deployment/ipark-deployment --timeout=180s
