@@ -55,11 +55,13 @@ jobs:
             echo "ECR_REPO=prod-ipark-app" >> $GITHUB_ENV
             echo "IMAGE_TAG=prod-${{ github.sha }}" >> $GITHUB_ENV
             echo "AWS_ROLE_ARN=arn:aws:iam::833333701463:role/prod-ipark-github-actions-role" >> $GITHUB_ENV
+            echo "REPLICAS=1" >> $GITHUB_ENV
           else
             echo "EKS_CLUSTER=dev-ipark-eks" >> $GITHUB_ENV
             echo "ECR_REPO=dev-ipark-app" >> $GITHUB_ENV
             echo "IMAGE_TAG=dev-${{ github.sha }}" >> $GITHUB_ENV
             echo "AWS_ROLE_ARN=arn:aws:iam::833333701463:role/dev-ipark-github-actions-role" >> $GITHUB_ENV
+            echo "REPLICAS=1" >> $GITHUB_ENV
           fi
 
       - name: Configure AWS Credentials
