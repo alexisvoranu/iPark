@@ -93,8 +93,33 @@ jobs:
       - name: Deploy Manifests to EKS
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          AWS_REGION: eu-central-1
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          STRIPE_API_PUBLIC_KEY: ${{ secrets.STRIPE_API_PUBLIC_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
         run: |
-          sed -i "s|IMAGE_PLACEHOLDER|${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}|g" k8s/deployment.yaml
-          sed -i "s|REPLICAS_PLACEHOLDER|${REPLICAS}|g" k8s/deployment.yaml
+          kubectl create secret generic ipark-secrets \
+            --from-literal=STRIPE_API_KEY="$STRIPE_API_KEY" \
+            --from-literal=STRIPE_API_PUBLIC_KEY="$STRIPE_API_PUBLIC_KEY" \
+            --from-literal=STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET" \
+            --dry-run=client -o yaml | kubectl apply -f -
+          
+          sed -i "s|REPLICAS_PLACEHOLDER|$REPLICAS|g" k8s/deployment.yaml
+          sed -i "s|ENVIRONMENT_PLACEHOLDER|$TARGET_ENV|g" k8s/configmap.yaml
+          sed -i "s|IMAGE_PLACEHOLDER|$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG|g" k8s/deployment.yaml
+          
+          kubectl delete pods --field-selector status.phase=Failed --ignore-not-found=true
+          kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/deployment.yaml
-          kubectl rollout status deployment/ipark-deployment --timeout=180s
+          
+          if ! kubectl rollout status deployment/ipark-deployment --timeout=240s; then
+            echo "=== PODS STATUS ==="
+            kubectl get pods -o wide
+            echo "=== PODS EVENTS / ERRORS ==="
+            kubectl describe pods -l app=ipark-backend
+            echo "=== APPLICATION LOGS ==="
+            kubectl logs -l app=ipark-backend --tail=150 --all-containers=true
+            exit 1
+          fi
+          
+          kubectl get svc ipark-service
